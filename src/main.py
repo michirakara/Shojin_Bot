@@ -8,6 +8,7 @@ import requests
 import pandas as pd
 import matplotlib.pyplot as plt
 import random
+from discord import app_commands
 
 TOKEN = os.environ["TOKEN"]
 intents = discord.Intents.default()
@@ -23,7 +24,7 @@ prev_api_call = 0
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user} (ID: {bot.user.id})")
-    #await tree.sync()
+    await tree.sync()
 
 
 @tree.command(name="subtoday", description="今日の提出の結果を返します")
@@ -135,9 +136,16 @@ async def ac(ctx, username: str, start: str = "-1"):
     if max(diff_list) < 5:
         ax.set_ylim(0, 5)
     fig.savefig(f"graph.png")
+
+    if start == "-1": start = "today"
+    print(len(data))
+    if len(data)==500:
+        await ctx.response.send_message(
+            f"Not all submissions from {start} were included",
+            file=discord.File(f"graph.png"))
+        return
     await ctx.response.send_message(file=discord.File(f"graph.png"))
-
-
+    
 @tree.command(
     name="gacha",
     description="指定されたdiffの問題から一つランダムに選んで返します(指定されないと任意のdifficultyの問題)")
@@ -165,6 +173,7 @@ async def gacha(ctx, low_diff: int = -1000, high_diff: int = 10000):
     await ctx.response.send_message(
         f"https://atcoder.jp/contests/{'-'.join(ret.split('_')[:-1])}/tasks/{ret}"
     )
+
 
 
 keep_alive()
